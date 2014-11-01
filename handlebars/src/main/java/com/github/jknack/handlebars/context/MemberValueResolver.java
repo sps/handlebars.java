@@ -43,11 +43,23 @@ import com.github.jknack.handlebars.ValueResolver;
 public abstract class MemberValueResolver<M extends Member>
     implements ValueResolver {
 
+    /**
+     * enable/disable the {@link Member} cache.
+     *
+     * Enabled by default. This is disabled by setting the system property
+     * {@code handlebars.context.cache.disabled} to a non-null value.
+     */
+    private boolean cacheEnabled = System.getProperty("handlebars.context.cache.disabled") == null;
+
   /**
    * A concurrent and thread-safe cache for {@link Member}.
    */
   private final Map<String, Object> cache =
-      new ConcurrentHashMap<String, Object>();
+      new ConcurrentHashMap<String, Object>() {
+          public Object get(final Object key) {
+              return cacheEnabled ? super.get(key) : null;
+          }
+      };
 
   @Override
   public final Object resolve(final Object context, final String name) {
